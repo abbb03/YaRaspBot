@@ -1,1 +1,1 @@
-worker: java -jar out\artifacts\YaRaspTelega_jar\YaRaspTelega.jar
+web: java -jar out\artifacts\YaRaspTelega_jar\YaRaspTelega.jar
