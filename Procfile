@@ -1,1 +1,1 @@
-worker: sh target/bin/YaRaspBot
+web: java -cp target/classes/:target/dependency/* Main
