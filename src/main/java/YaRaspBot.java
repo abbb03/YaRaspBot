@@ -6,43 +6,13 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 public class YaRaspBot extends TelegramLongPollingBot {
 
     static String furmanov = "c20682";
     static String ivanovo = "s9839568";
-
-    private boolean checkText(Update update) {
-        return update.hasMessage() && update.getMessage().hasText();
-    }
-
-    private synchronized void sendMsg(String chatId, String s) throws IOException {
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.enableMarkdown(true);
-        sendMessage.setChatId(chatId);
-        if (s.equals("1")) {
-            String request = "https://api.rasp.yandex.net/v3.0/search/?apikey=" + Config.yandexToken + Config.format +
-                     "&from=" + furmanov + "&to=" + ivanovo + "&transport_types=bus&lang=ru_RU&page=1";
-            ParseYandex.json = getResponse(request);
-            sendMessage.setText(ParseYandex.parse());
-        }
-        else if (s.equals("2")) {
-            String request = "https://api.rasp.yandex.net/v3.0/search/?apikey=" + Config.yandexToken + Config.format +
-                    "&to=" + furmanov + "&from=" + ivanovo + "&transport_types=bus&lang=ru_RU&page=1";
-            ParseYandex.json = getResponse(request);
-            sendMessage.setText(ParseYandex.parse());
-        }
-        else
-        {
-            sendMessage.setText("Шёл бы ты отсюда...");
-        }
-        try {
-            execute(sendMessage);
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-        }
-    }
 
     private static HttpURLConnection getConnection(URL url) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -77,6 +47,32 @@ public class YaRaspBot extends TelegramLongPollingBot {
             if (connection != null) {
                 connection.disconnect();
             }
+        }
+    }
+
+    private boolean checkText(Update update) {
+        return update.hasMessage() && update.getMessage().hasText();
+    }
+
+    private synchronized void sendMsg(String chatId, String s) throws IOException {
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.enableMarkdown(true);
+        sendMessage.setChatId(chatId);
+        if (s.equals("1")) {
+            String request = "https://api.rasp.yandex.net/v3.0/search/?apikey=" + Config.yandexToken + Config.format + "&from=" + furmanov + "&to=" + ivanovo + "&transport_types=bus&lang=ru_RU&page=1";
+            ParseYandex.json = getResponse(request);
+            sendMessage.setText(ParseYandex.parse());
+        } else if (s.equals("2")) {
+            String request = "https://api.rasp.yandex.net/v3.0/search/?apikey=" + Config.yandexToken + Config.format + "&to=" + furmanov + "&from=" + ivanovo + "&transport_types=bus&lang=ru_RU&page=1";
+            ParseYandex.json = getResponse(request);
+            sendMessage.setText(ParseYandex.parse());
+        } else {
+            sendMessage.setText("Шёл бы ты отсюда...");
+        }
+        try {
+            execute(sendMessage);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
         }
     }
 

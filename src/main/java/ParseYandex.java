@@ -4,7 +4,7 @@ import org.json.JSONObject;
 public class ParseYandex {
     public static String json;
 
-    public static String parse(){
+    public static String parse() {
         StringBuilder stringBuilder = new StringBuilder();
         JSONObject obj = new JSONObject(json);
 
