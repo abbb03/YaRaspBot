@@ -1,6 +1,8 @@
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.BufferedReader;
@@ -8,11 +10,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 public class YaRaspBot extends TelegramLongPollingBot {
-
-    static String furmanov = "c20682";
-    static String ivanovo = "s9839568";
 
     private static HttpURLConnection getConnection(URL url) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -54,21 +55,56 @@ public class YaRaspBot extends TelegramLongPollingBot {
         return update.hasMessage() && update.getMessage().hasText();
     }
 
+    private static KeyboardRow createKeyboardRow() {
+        KeyboardRow keyboardRow = new KeyboardRow();
+        keyboardRow.add("Из Фурманова");
+        keyboardRow.add("Из Иванова");
+        return keyboardRow;
+    }
+
+    private static void chooseAnswer(String s, SendMessage sendMessage) throws IOException {
+        switch (s) {
+            case "Из Фурманова": {
+                String request = "https://api.rasp.yandex.net/v3.0/search/?apikey=" + Config.yandexToken + Config.format + "&from=" + Config.furmanov + "&to=" + Config.ivanovo + "&transport_types=bus&lang=ru_RU&page=1";
+                ParseYandex.json = getResponse(request);
+                sendMessage.setText(ParseYandex.parse());
+                break;
+            }
+            case "Из Иванова": {
+                String request = "https://api.rasp.yandex.net/v3.0/search/?apikey=" + Config.yandexToken + Config.format + "&to=" + Config.furmanov + "&from=" + Config.ivanovo + "&transport_types=bus&lang=ru_RU&page=1";
+                ParseYandex.json = getResponse(request);
+                sendMessage.setText(ParseYandex.parse());
+                break;
+            }
+            default: {
+                sendMessage.setText("Не пытайся меня удивить");
+            }
+        }
+    }
+
+    private static ReplyKeyboardMarkup createReplyKeyboardMarkup(SendMessage sendMessage) {
+        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
+        sendMessage.setReplyMarkup(replyKeyboardMarkup);
+        replyKeyboardMarkup.setSelective(true);
+        replyKeyboardMarkup.setResizeKeyboard(true);
+        replyKeyboardMarkup.setOneTimeKeyboard(false);
+        return replyKeyboardMarkup;
+    }
+
     private synchronized void sendMsg(String chatId, String s) throws IOException {
         SendMessage sendMessage = new SendMessage();
         sendMessage.enableMarkdown(true);
         sendMessage.setChatId(chatId);
-        if (s.equals("1")) {
-            String request = "https://api.rasp.yandex.net/v3.0/search/?apikey=" + Config.yandexToken + Config.format + "&from=" + furmanov + "&to=" + ivanovo + "&transport_types=bus&lang=ru_RU&page=1";
-            ParseYandex.json = getResponse(request);
-            sendMessage.setText(ParseYandex.parse());
-        } else if (s.equals("2")) {
-            String request = "https://api.rasp.yandex.net/v3.0/search/?apikey=" + Config.yandexToken + Config.format + "&to=" + furmanov + "&from=" + ivanovo + "&transport_types=bus&lang=ru_RU&page=1";
-            ParseYandex.json = getResponse(request);
-            sendMessage.setText(ParseYandex.parse());
-        } else {
-            sendMessage.setText("Шёл бы ты отсюда...");
-        }
+
+        ReplyKeyboardMarkup replyKeyboardMarkup = createReplyKeyboardMarkup(sendMessage);
+
+        List<KeyboardRow> keyboard = new ArrayList<>();
+        KeyboardRow keyboardFirstRow = createKeyboardRow();
+        keyboard.add(keyboardFirstRow);
+
+        replyKeyboardMarkup.setKeyboard(keyboard);
+
+        chooseAnswer(s, sendMessage);
         try {
             execute(sendMessage);
         } catch (TelegramApiException e) {
